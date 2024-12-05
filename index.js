@@ -45,16 +45,28 @@ const response = {
   ],
 };
 
-const outPutFunction = () => {
-  const { folder_list } = resoponse;
-  const newObj = [];
-  const parentList = folder_list.filter((item) => item.parent_id === 0);
+//consider parent id is 0 by default
+const outputFunction = (folders_List, vehicle_list, parentId = 0) => {
+  //adding folder list and vehicle list in one array
+  const combinedArr = [
+    ...folders_List,
+    ...vehicle_list.map((v) => ({
+      id: v.vehicle_id,
+      name: v.name,
+      parent_id: v.parent_id,
+    })),
+  ];
 
-  const pObj = {};
-  for (let x of parentList) {
-    newObj.push(x);
-    const parentList1 = folder_list.filter((item) => item.parent_id === x.id);
-  }
+  const result = combinedArr
+    .filter((item) => item.parent_id === parentId)
+    .map((item) => ({
+      ...item,
+      children: outputFunction(folders_List, vehicle_list, item.id), //if outPutFunction length is 0 we can avoid creating this children property
+    }));
+
+  return result;
 };
 
-outPutFunction();
+const output = outputFunction(response.folder_list, response.vehicle_list);
+
+console.log(JSON.stringify(output, null, 2)); //to view in json formatted text
